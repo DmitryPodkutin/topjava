@@ -52,7 +52,7 @@
 > про clone и finalize объязательно прочтите <a href="http://www.ozon.ru/context/detail/id/24828676/">Джошуа Блох: Java. Эффективное программирование (второе издание)</a>
 
 -  <a href="http://bookvoed.ru/book?id=2593572">Cracking the Coding Interview</a>
-> Особенно обратите внимание на раздел: <a href="http://storage.piter.com/upload/contents/978545901120/978545901120_X.pdf">Часть VIII. Вопросы собеседования</a>
+> Особенно обратите внимание на раздел: <a href="http://repository.piter.com/upload/contents/978545901120/978545901120_X.pdf">Часть VIII. Вопросы собеседования</a>
 
 
 ### От себя:
