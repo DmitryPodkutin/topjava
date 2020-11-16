@@ -8,17 +8,9 @@
 <body>
 <section>
     <h3><a href="index.html"><spring:message code="app.home"/></a></h3>
-    <hr>
-    <c:choose>
-        <c:when test="${param.action == 'create'}">
-            <h2><spring:message code="meal.create"/></h2>
-        </c:when>
-        <c:otherwise>
-            <h2><spring:message code="meal.update"/></h2>
-        </c:otherwise>
-    </c:choose>
+    <h2><spring:message code="meal.${meal.id==null? 'create' : 'edit'}"/></h2>
     <jsp:useBean id="meal" type="ru.javawebinar.topjava.model.Meal" scope="request"/>
-    <form method="post" action="createOrUpdate">
+    <form method="post" action="${pageContext.request.contextPath}/meals">
         <input type="hidden" name="id" value="${meal.id}">
         <dl>
             <dt><spring:message code="meal.date_time"/>:</dt>

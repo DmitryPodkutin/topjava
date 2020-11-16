@@ -50,7 +50,7 @@ abstract public class AbstractServiceTest {
         });
     }
 
-    public boolean isJdbcProfile() {
+    public boolean isNotJdbcProfile() {
         return Arrays.stream(environment.getActiveProfiles())
                 .noneMatch(p -> p.equals(Profiles.JDBC));
     }
