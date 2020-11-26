@@ -8,13 +8,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
-import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
-
-import java.time.LocalTime;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -24,8 +20,7 @@ import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.TestUtil.readFromJson;
 import static ru.javawebinar.topjava.UserTestData.*;
 import static ru.javawebinar.topjava.UserTestData.user;
-import static ru.javawebinar.topjava.util.MealsUtil.getFilteredTos;
-import static ru.javawebinar.topjava.util.MealsUtil.getTos;
+import static ru.javawebinar.topjava.util.MealsUtil.*;
 import static ru.javawebinar.topjava.web.meal.MealRestController.REST_URL;
 
 public class MealRestControllerTest extends AbstractControllerTest {
@@ -66,12 +61,11 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(newMeal)))
                 .andExpect(status().isCreated());
-
         Meal created = readFromJson(action, Meal.class);
         int newId = created.id();
         newMeal.setId(newId);
         MEAL_MATCHER.assertMatch(created, newMeal);
-        MEAL_MATCHER.assertMatch(mealService.get(newId, user.id()), newMeal);
+        MEAL_MATCHER.assertMatch(mealService.get(newId, USER_ID), newMeal);
     }
 
     @Test
@@ -81,16 +75,19 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(updated)))
                 .andExpect(status().isNoContent());
-        MEAL_MATCHER.assertMatch(mealService.get(MEAL1_ID, user.id()), updated);
+        MEAL_MATCHER.assertMatch(mealService.get(MEAL1_ID, USER_ID), updated);
     }
 
     @Test
     void getBetweenInclusive() throws Exception {
-        List<MealTo> mealsTo = getFilteredTos(meals, user.getCaloriesPerDay(), LocalTime.of(13, 0), LocalTime.of(20, 5));
-        perform(MockMvcRequestBuilders.get(REST_URL + "filter?start=2020-01-30T13:00:00&end=2020-01-31T20:05:00"))
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter")
+                .param("startDate", "2020-01-30" )
+                .param("startTime","13:00")
+                .param("endDate", "" )
+                .param("endTime","20:05" ))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MEAL_TO_MATCHER.contentJson(mealsTo));
+                .andExpect(MEAL_TO_MATCHER.contentJson(createTo(meal7, true), createTo(meal6, true), createTo(meal3, false), createTo(meal2, false)));
     }
 }
