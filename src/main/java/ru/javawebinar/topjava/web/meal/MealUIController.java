@@ -34,5 +34,4 @@ public class MealUIController extends AbstractMealController {
     public List<MealTo> getAll() {
         return super.getAll();
     }
-
 }
