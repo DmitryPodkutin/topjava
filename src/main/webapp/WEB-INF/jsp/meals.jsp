@@ -12,7 +12,7 @@
 <div class="jumbotron pt-4">
     <div class="container">
         <h3 class="text-center"><spring:message code="meal.title"/></h3>
-                <form method="get" action="meals/filter">
+                <form id="filter">
                     <dl>
                         <dt><spring:message code="meal.startDate"/>:</dt>
                         <dd><input type="date" name="startDate" value="${param.startDate}"></dd>
@@ -29,8 +29,15 @@
                         <dt><spring:message code="meal.endTime"/>:</dt>
                         <dd><input type="time" name="endTime" value="${param.endTime}"></dd>
                     </dl>
-                    <button type="submit"><spring:message code="meal.filter"/></button>
                 </form>
+        <button class="btn btn-primary" onclick="clearFilter()">
+            <span class="fa fa-clear-filter"></span>
+            <spring:message code="common.cancel"/>
+        </button>
+        <button class="btn btn-primary" onclick="tableFilter()">
+            <span class="fa fa-filter"></span>
+            <spring:message code="meal.filter"/>
+        </button>
         <button class="btn btn-primary" onclick="add()">
             <span class="fa fa-plus"></span>
             <spring:message code="common.add"/>
@@ -47,14 +54,14 @@
             </thead>
             <c:forEach items="${meals}" var="meal">
                 <jsp:useBean id="meal" type="ru.javawebinar.topjava.to.MealTo"/>
-                <tr id="${meal.id}" data-mealExcess="${meal.excess}">
+                <tr data-mealExcess="${meal.excess}">
                     <td>
                             ${fn:formatDateTime(meal.dateTime)}
                     </td>
                     <td>${meal.description}</td>
                     <td>${meal.calories}</td>
                     <td><a><span class="fa fa-pencil"></span></a></td>
-                    <td><a class="delete"><span class="fa fa-remove"></span></a></td>
+                    <td><a onclick="deleteRow(${meal.id})"><span class="fa fa-remove"></span></a></td>
                 </tr>
             </c:forEach>
         </table>

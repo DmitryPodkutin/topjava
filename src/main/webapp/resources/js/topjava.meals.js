@@ -37,3 +37,21 @@ $(function () {
     };
     makeEditable();
 });
+
+function updateTableWithData(data) {
+    ctx.datatableApi.clear().rows.add(data).draw();
+}
+
+function clearFilter() {
+    $("#filter")[0].reset()
+    $.get("profile/meals/", updateTableWithData);
+ }
+
+
+function tableFilter() {
+    $.ajax({
+        type: "GET",
+        url: "profile/meals/filter",
+        data: $("#filter").serialize()
+    }).done(updateTableWithData);
+}
