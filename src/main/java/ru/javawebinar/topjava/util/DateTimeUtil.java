@@ -10,7 +10,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class DateTimeUtil {
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    //    https://docs.oracle.com/javase/9/docs/api/java/time/format/DateTimeFormatter.html#parseBest-java.lang.CharSequence-java.time.temporal.TemporalQuery...-
+    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd['T']HH:mm[:ss]";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
 
     // DB doesn't support LocalDate.MIN/MAX
     private static final LocalDateTime MIN_DATE = LocalDateTime.of(1, 1, 1, 0, 0);
