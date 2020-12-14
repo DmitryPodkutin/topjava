@@ -26,7 +26,7 @@ public class MealUIController extends AbstractMealController {
     }
 
     @Override
-    @GetMapping( "/{id}")
+    @GetMapping("/{id}")
     public Meal get(@PathVariable int id) {
         return super.get(id);
     }
@@ -40,17 +40,12 @@ public class MealUIController extends AbstractMealController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<String> createOrUpdate(@Valid Meal meal, BindingResult result) {
-        if (result.hasErrors()) {
-            // TODO change to exception handler
-            return ValidationUtil.getErrorResponse(result);
-        }
+    public void createOrUpdate(@Valid Meal meal) {
         if (meal.isNew()) {
             super.create(meal);
         } else {
             super.update(meal, meal.getId());
         }
-        return ResponseEntity.ok().build();
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,8 @@ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.Objects;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 
@@ -37,6 +40,9 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.CONFLICT)  // 409
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
+        if (Objects.requireNonNull(e.getMessage()).contains("users_unique_email_idx")) {
+            return new ErrorInfo(req.getRequestURL(), DATA_ERROR, "User with this email already exists");
+        }
         return logAndGetErrorInfo(req, e, true, DATA_ERROR);
     }
 
@@ -44,6 +50,14 @@ public class ExceptionInfoHandler {
     @ExceptionHandler({IllegalRequestDataException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
     public ErrorInfo illegalRequestDataError(HttpServletRequest req, Exception e) {
         return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
+    }
+
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler({BindException.class})
+    public ErrorInfo validationError(HttpServletRequest req, Exception e) {
+        String detail = ValidationUtil.getErrorDetail(((BindException) e).getBindingResult());
+        log.error(VALIDATION_ERROR + " at request " + req.getRequestURL(), ValidationUtil.getRootCause(e));
+        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, detail);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
