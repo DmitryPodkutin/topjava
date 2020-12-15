@@ -2,6 +2,7 @@ package ru.javawebinar.topjava;
 
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.web.json.JsonUtil;
 
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
@@ -36,5 +37,9 @@ public class MealTestData {
 
     public static Meal getUpdated() {
         return new Meal(MEAL1_ID, meal1.getDateTime().plus(2, ChronoUnit.MINUTES), "Обновленный завтрак", 200);
+    }
+
+    public static String jsonWithCalories(Meal meal, int calories) {
+        return JsonUtil.writeAdditionProps(meal, "calories", calories);
     }
 }

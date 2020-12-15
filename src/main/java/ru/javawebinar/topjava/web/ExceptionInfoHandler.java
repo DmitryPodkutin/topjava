@@ -21,6 +21,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.Objects;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
@@ -41,6 +42,7 @@ public class ExceptionInfoHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
         if (Objects.requireNonNull(e.getMessage()).contains("users_unique_email_idx")) {
+            logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
             return new ErrorInfo(req.getRequestURL(), DATA_ERROR, "User with this email already exists");
         }
         return logAndGetErrorInfo(req, e, true, DATA_ERROR);
@@ -54,9 +56,9 @@ public class ExceptionInfoHandler {
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler({BindException.class})
-    public ErrorInfo validationError(HttpServletRequest req, Exception e) {
-        String detail = ValidationUtil.getErrorDetail(((BindException) e).getBindingResult());
-        log.error(VALIDATION_ERROR + " at request " + req.getRequestURL(), ValidationUtil.getRootCause(e));
+    public ErrorInfo validationError(HttpServletRequest req, BindException e) {
+        List<String> detail = ValidationUtil.getErrorDetail(e.getBindingResult());
+        logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
         return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, detail);
     }
 
