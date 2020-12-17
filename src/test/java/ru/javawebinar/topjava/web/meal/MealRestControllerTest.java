@@ -85,12 +85,12 @@ class MealRestControllerTest extends AbstractControllerTest {
     @Test
     void updateValidationError() throws Exception {
         Meal updated = getUpdated();
+        updated.setCalories(3);
         perform(MockMvcRequestBuilders.put(REST_URL + MEAL1_ID).contentType(MediaType.APPLICATION_JSON)
-                .content(MealTestData.jsonWithCalories(updated, 3))
+                .content((JsonUtil.writeValue(updated)))
                 .with(userHttpBasic(user)))
                 .andExpect(status().isUnprocessableEntity());
     }
-
 
     @Test
     void createWithLocation() throws Exception {
@@ -110,9 +110,10 @@ class MealRestControllerTest extends AbstractControllerTest {
     @Test
     void createValidationError() throws Exception {
         Meal newMeal = getNew();
+        newMeal.setCalories(3);
         perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(MealTestData.jsonWithCalories(newMeal, 3))
+                .content((JsonUtil.writeValue(newMeal)))
                 .with(userHttpBasic(user)))
                 .andExpect(status().isUnprocessableEntity());
     }

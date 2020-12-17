@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,10 +22,9 @@ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.ValidationException;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 
@@ -36,7 +34,9 @@ public class ExceptionInfoHandler {
     @Autowired
     private MessageSource messageSource;
     private static Logger log = LoggerFactory.getLogger(ExceptionInfoHandler.class);
-    public static String EXCEPTION_USER_DUPLICATE_MAIL = "exception.user.duplicateMail";
+    public static final String EXCEPTION_USER_DUPLICATE_MAIL = "exception.user.duplicateMail";
+    public static final String EXCEPTION_USER_DUPLICATE_DATETIME = "exception.meal.duplicateDateTime";
+
 
     //  http://stackoverflow.com/a/22358422/548473
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -48,9 +48,13 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.CONFLICT)  // 409
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
-        if (Objects.requireNonNull(e.getMessage()).contains("users_unique_email_idx")) {
-            logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
-            return new ErrorInfo(req.getRequestURL(), DATA_ERROR, messageSource.getMessage(EXCEPTION_USER_DUPLICATE_MAIL, null, Locale.getDefault()));
+        Map<String, String> exceptions = Map.of("users_unique_email_idx", EXCEPTION_USER_DUPLICATE_MAIL,
+                "meals_unique_user_datetime_idx", EXCEPTION_USER_DUPLICATE_DATETIME);
+        for (String key : exceptions.keySet()) {
+            if (Objects.requireNonNull(e.getMessage()).contains(key)) {
+                String msg = messageSource.getMessage(exceptions.get(key), null, Locale.getDefault());
+                return logAndGetErrorInfo(req, new DataIntegrityViolationException(msg), false, DATA_ERROR);
+            }
         }
         return logAndGetErrorInfo(req, e, true, DATA_ERROR);
     }
@@ -64,9 +68,8 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler({BindException.class})
     public ErrorInfo validationError(HttpServletRequest req, BindException e) {
-        List<String> detail = ValidationUtil.getErrorDetail(e.getBindingResult());
-        logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, detail);
+        List<String> errorDetails = ValidationUtil.getErrorDetails(e.getBindingResult());
+        return logAndGetErrorInfo(req, new ValidationException(""), false, VALIDATION_ERROR, errorDetails.toArray(new String[0]));
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -76,13 +79,14 @@ public class ExceptionInfoHandler {
     }
 
     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
-    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
+    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType, String... errorDetails) {
         Throwable rootCause = ValidationUtil.getRootCause(e);
+        errorDetails = errorDetails.length == 0 ? new String[]{rootCause.getMessage()} : errorDetails;
         if (logException) {
             log.error(errorType + " at request " + req.getRequestURL(), rootCause);
         } else {
-            log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.getMessage());
+            log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), errorDetails);
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, rootCause.getMessage());
+        return new ErrorInfo(req.getRequestURL(), errorType, errorDetails);
     }
 }
